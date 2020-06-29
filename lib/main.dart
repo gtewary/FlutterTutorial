@@ -1,6 +1,8 @@
-import 'dart:math';
+import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() => runApp(MyApp());
 
@@ -12,7 +14,147 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,
       ),
+      // home: ChannelClass(),
       home: PlayerList(),
+      // home: Scaffold(
+      //   appBar: AppBar(
+      //     title: Text('Prediction'),
+      //   ),
+      //   body: Center(
+      //     child: HomeSL(),
+      //   ),
+      // ),
+    );
+  }
+}
+
+class ChannelClass extends StatefulWidget {
+  @override
+  _ChannelClassState createState() => _ChannelClassState();
+}
+
+class _ChannelClassState extends State<ChannelClass> {
+  static const platform = const MethodChannel('EnglishChannel');
+  String _result = 'let me think ...';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Philosophy'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            RaisedButton(
+              onPressed: () async {
+                _result =
+                    await platform.invokeMethod('isGrassGreenerOnTheOtherSide');
+                setState(() {});
+              },
+              child: Text('Is grass greener on the other side?'),
+            ),
+            Text(_result),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomeSF extends StatefulWidget {
+  @override
+  _HomeSFState createState() => _HomeSFState();
+}
+
+class _HomeSFState extends State<HomeSF> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        CounterWidget(
+          callback: (String data) {
+            setState(() {});
+          },
+        ),
+        Container(
+          width: 100,
+          height: 100,
+          color: randomColor(),
+        )
+      ],
+    );
+  }
+}
+
+class HomeSL extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        CounterWidget(
+          callback: (String data) {
+            print('Data = $data');
+          },
+        ),
+        Container(
+          width: 100,
+          height: 100,
+          color: randomColor(),
+        )
+      ],
+    );
+  }
+}
+
+class CounterWidget extends StatefulWidget {
+  CounterWidget({@required this.callback});
+  final PredictionCallback callback;
+
+  @override
+  _CounterWidgetState createState() => _CounterWidgetState();
+}
+
+class _CounterWidgetState extends State<CounterWidget> {
+  // Timer _timer;
+  String _prediction = "You'll live the life of a commoner";
+
+  String fetchPrediction() {
+    int rand = math.Random().nextInt(2);
+    String pred =
+        rand == 0 ? 'live for 1000 years, kind one.' : 'perish tonight, worm.';
+    return "You'll $pred";
+  }
+
+  void startFetchData() {
+    const delay = const Duration(seconds: 3);
+    Timer.periodic(
+      delay,
+      (Timer timer) {
+        _prediction = fetchPrediction();
+        widget.callback(_prediction);
+        setState(() {});
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    startFetchData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.amber,
+      child: Center(
+        child: Text(
+          _prediction,
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
     );
   }
 }
@@ -45,7 +187,7 @@ class _PlayerListState extends State<PlayerList> {
 
   String _getFeedback() {
     String feedback;
-    int rand = Random().nextInt(4);
+    int rand = math.Random().nextInt(4);
     switch (rand) {
       case 0:
         feedback = 'good';
@@ -199,4 +341,14 @@ class MovieRow extends StatelessWidget {
       ),
     );
   }
+}
+
+typedef void PredictionCallback(String data);
+Color randomColor() {
+  return Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
+      .withOpacity(1.0);
+}
+
+bool isEarthFlat() {
+  return true;
 }
